@@ -1,0 +1,560 @@
+{
+  "name": "Social Media Post",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "You are a professional social media content creator. \nYour task is to analyze the given image and create engaging content for posting.\n\n1. Look at the image carefully and describe it in a short, catchy, and appealing way (1–2 sentences). \n   - Make it sound natural, creative, and attention-grabbing.\n   - Avoid sounding robotic or overly descriptive.\n\n2. Suggest 5–8 relevant hashtags that are trending and platform-friendly. \n   - Use a mix of broad and niche hashtags.\n   - Keep them short (1–3 words each).\n   - Don’t repeat words already used in the caption.\n\nReturn the output in string format only\nYour generated caption here and your geneated hashtags\n",
+        "inputType": "base64",
+        "binaryPropertyName": "=data ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        496,
+        288
+      ],
+      "id": "7acaeca8-9217-4eb8-8f74-b641b661073d",
+      "name": "Analyze image",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "QnMEUHjiGilfHVJ1",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "a4fe662b-3698-400a-a5d4-43b849b90535",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        576
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "operation": "getAll",
+        "tableId": "my_table",
+        "returnAll": true,
+        "matchType": "allFilters"
+      },
+      "id": "fdd9c073-0311-4d70-a7ed-3c3ab0c4165e",
+      "name": "Supabase Check",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        528
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "d1iJ1YywzSN9iVcK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        240
+      ],
+      "id": "fbf3b3f3-5604-44af-904a-132a1148d983",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "sSuNaCbkKAg2oo47",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -816,
+        224
+      ],
+      "id": "2b967f88-aff9-4109-851b-e1c60e09d247",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "'1Wl45DTkG9RYoI0TS33D5ShBm498yPvDw' in parents and mimeType contains 'image/'",
+        "returnAll": true,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -560,
+        288
+      ],
+      "id": "11aab94a-2037-4d39-8fc8-127113b76779",
+      "name": "Search all Files",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "sSuNaCbkKAg2oo47",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const driveId = $('Split In Batches').item.json.id;\nconst name = $('Split In Batches').item.json.name;\nconst supabaseIds = $items(\"Supabase Check\").map(item => item.json.id);\n\n// Check if driveId exists in supabaseIds\nif (supabaseIds.includes(driveId)) {\n  // File already exists → skip\n  return [{ exists: true, id: driveId }];\n} else {\n  // File not found → continue\n  return [{ exists: false, id: driveId, photo_name:name }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        592
+      ],
+      "id": "e1dd1da0-c834-4026-a7d8-07641928ad29",
+      "name": "Check if Posted or not"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5da3d774-0612-423d-8d61-57f6b60a1f06",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        544
+      ],
+      "id": "437da345-a2d4-4530-957b-2ab92b266bba",
+      "name": "If Posted"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v22.0",
+        "node": "={{ $('Set Image & Caption').item.json.node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              },
+              {
+                "name": "image_url",
+                "value": "=https://sbbdvyiudqhlcvorwobc.supabase.co/storage/v1/object/public/insta_uploads/{{ $('Download file').item.json.photo_name }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Set Image & Caption').item.json.captionText }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        336,
+        576
+      ],
+      "id": "a650901b-0f4a-41b8-98e7-128fa60cd32c",
+      "name": "Instagram Posting",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "anunhrtueRiKVp8w",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v22.0",
+        "node": "={{ $json.node }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "=https://sbbdvyiudqhlcvorwobc.supabase.co/storage/v1/object/public/insta_uploads/{{ $('Download file').item.json.photo_name }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.captionText }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        160,
+        624
+      ],
+      "id": "6806b413-4ae8-4275-bd7b-94fc44558ef9",
+      "name": "Creating Container",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "anunhrtueRiKVp8w",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sbbdvyiudqhlcvorwobc.supabase.co/storage/v1/object/insta_uploads/{{ $('Download file').item.json.photo_name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiYmR2eWl1ZHFobGN2b3J3b2JjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Njg4MTQ1NSwiZXhwIjoyMDcyNDU3NDU1fQ._fCab3rX0w5buor3H4AW50syPTHUG6DkMn2BeRxvW1c"
+            },
+            {
+              "name": "Authorization",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiYmR2eWl1ZHFobGN2b3J3b2JjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Njg4MTQ1NSwiZXhwIjoyMDcyNDU3NDU1fQ._fCab3rX0w5buor3H4AW50syPTHUG6DkMn2BeRxvW1c"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/jpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        128,
+        288
+      ],
+      "id": "246f652f-af22-47e2-b7d4-b9ee3bc36c13",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "tableId": "my_table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $('Download file').item.json.id }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('Download file').item.json.photo_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        528,
+        624
+      ],
+      "id": "026e70fb-4df6-43fd-b867-8ec3f95a3f38",
+      "name": "Adding New Entry",
+      "credentials": {
+        "supabaseApi": {
+          "id": "d1iJ1YywzSN9iVcK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('If Posted').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        320,
+        240
+      ],
+      "id": "45741831-a03d-43bf-a5f6-04715df55e4f",
+      "name": "Download file1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "sSuNaCbkKAg2oo47",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "captionText",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "image_url",
+              "value": "=https://sbbdvyiudqhlcvorwobc.supabase.co/storage/v1/object/public/insta_uploads/{{ $('Download file').item.json.photo_name }}"
+            },
+            {
+              "name": "node",
+              "value": "17841474415626449"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Image & Caption",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        592
+      ],
+      "id": "bc885f0a-cf66-4570-9a59-a4d3e12cd49d",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Set Image & Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Supabase Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Check": {
+      "main": [
+        [
+          {
+            "node": "Check if Posted or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search all Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search all Files": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Posted or not": {
+      "main": [
+        [
+          {
+            "node": "If Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Posted": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creating Container": {
+      "main": [
+        [
+          {
+            "node": "Instagram Posting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Download file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Posting": {
+      "main": [
+        [
+          {
+            "node": "Adding New Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Image & Caption": {
+      "main": [
+        [
+          {
+            "node": "Creating Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0e8315e5-c3de-4a0e-b73c-19c91903058d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd8d11f590ec6b30d8f9357a4184aa45589f43f9166c9c6089ac922001b2b9c6"
+  },
+  "id": "6LcnLxLqop9axc4T",
+  "tags": []
+}
