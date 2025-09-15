@@ -1,4 +1,4 @@
-# 📱 SocialContentEngine — n8n Social Media Auto-Poster
+# 📱 SocialContentEngine - n8n Social Media Auto-Poster
 
 > Automates posting images from a Google Drive folder: searches Drive, skips already-posted files (records kept in Supabase), uploads new images to a Supabase storage bucket (public URL), generates captions via OpenAI, creates Instagram media containers and publishes them via the Facebook Graph API, and records posted images in Supabase.
 
