@@ -8,7 +8,7 @@
 
 ### 🔹 Workflow Preview (Image)
 
-![Workflow Screenshot](images/flow.png)
+![Workflow Screenshot](Images/flow.png)
 
 <!-- ### 🔹 Workflow Demo (Video)
 
@@ -159,7 +159,7 @@ You’ll need to configure credentials in n8n for:
 
 | Workflow Flow        | Instagram Post Example       |
 | -------------------- | ---------------------------- |
-| ![](images/flow.png) | ![](images/example_post.png) |
+| ![](Images/flow.png) | ![](Images/example_post.png) |
 
 ---
 
