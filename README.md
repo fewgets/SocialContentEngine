@@ -1,183 +1,151 @@
-# 📱 SocialContentEngine - n8n Social Media Auto-Poster
+<!-- Social Content Engine · README by Usama Shahid (fewgets) -->
+<div align="center">
 
-> Automates posting images from a Google Drive folder: searches Drive, skips already-posted files (records kept in Supabase), uploads new images to a Supabase storage bucket (public URL), generates captions via OpenAI, creates Instagram media containers and publishes them via the Facebook Graph API, and records posted images in Supabase.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0D1117,55:0F3D3E,100:36FFC7&height=230&section=header&text=Social%20Content%20Engine&fontSize=50&fontColor=FFFFFF&fontAlignY=36&desc=Drive%20to%20Instagram%2C%20fully%20automated%20with%20AI%20captions&descSize=17&descAlignY=58&animation=fadeIn" width="100%" alt="Social Content Engine"/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=700&color=36FFC7&center=true&vCenter=true&width=720&height=60&lines=Google+Drive+to+Instagram;AI-Written+Captions+and+Hashtags;Zero+Duplicates%2C+Zero+Effort" alt="Typing SVG"/>
+
+<p>
+  <img src="https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n"/>
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"/>
+  <img src="https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive"/>
+</p>
+
+</div>
+
+---
+## 📌 Overview
+
+**Social Content Engine** is an **n8n** automation that runs your Instagram for you. Drop images
+into a Google Drive folder and the workflow does the rest:
+
+> 📂 finds new images → 🔁 skips anything already posted → ☁️ uploads to Supabase Storage →
+> ✍️ writes a caption and hashtags with **OpenAI** → 📸 publishes to **Instagram** → 🗂️ logs the post.
 
 ---
 
-## 🎥 Workflow Demo
+## 🎥 Workflow
 
-### 🔹 Workflow Preview (Image)
-
-![Workflow Screenshot](Images/flow.png)
-
-<!-- ### 🔹 Workflow Demo (Video)
-
-
-📺 *(Add your Loom / YouTube demo link here)*
-[▶ Watch Demo Video](https://youtu.be/your-demo-video-link)
--->
----
-
-## 📌 Project Summary
-
-SocialContentEngine is an **automation workflow built in n8n** that connects Google Drive, Supabase, OpenAI, and the Instagram Graph API to streamline social content publishing.
-
-It checks Google Drive for new files, avoids duplicates via Supabase, uploads valid images to a Supabase bucket, generates captions with OpenAI, and posts them to Instagram automatically. Posted entries are logged back in Supabase for record-keeping.
+<p align="center">
+  <img src="Images/flow.png" alt="n8n workflow" width="90%"/>
+</p>
 
 ---
 
-## ⚙️ Features
+## ✨ Features
 
-* 📂 **Google Drive Integration** – fetch new images from a specific folder
-* 🛢 **Supabase Database** – check if files are already posted & record posted ones
-* ☁ **Supabase Storage** – store images & generate public URLs
-* ✍ **AI Captions** – generate creative captions/hashtags with OpenAI
-* 📸 **Instagram Auto-Posting** – publish to Instagram Business/Creator accounts
-* 🔄 **Fully Automated** – once set, everything runs on schedule
-
----
-
-## 🧰 Tech Stack
-
-| Component          | Tool / Service                 |
-| ------------------ | ------------------------------ |
-| Automation Engine  | [n8n](https://n8n.io)          |
-| File Source        | Google Drive                   |
-| Database & Storage | Supabase (Postgres + S3)       |
-| AI Captioning      | OpenAI API                     |
-| Social Posting     | Facebook Graph API (Instagram) |
+| | Feature | Details |
+|:-:|---|---|
+| 📂 | **Google Drive source** | Watches a folder for new images |
+| 🔁 | **No duplicates** | Every posted file is recorded in Supabase and skipped next time |
+| ☁️ | **Public image hosting** | Uploads to a Supabase Storage bucket and generates a public URL |
+| ✍️ | **AI captions** | `gpt-4o-mini` looks at the image and writes a caption with hashtags |
+| 📸 | **Auto-publish** | Creates and publishes Instagram media through the Facebook Graph API |
+| ⏱️ | **Scheduled** | Runs automatically, no manual steps |
 
 ---
 
-## 🗂 Folder Structure
+## 🔄 How It Works
 
-```bash
-SocialContentEngine/
-├── images/                     # Screenshots (flow diagram, outputs, etc.)
-├── Social Media Post.json       # n8n workflow export
-└── README.md
+```mermaid
+flowchart LR
+    D[📂 Google Drive<br/>new images] --> C{Already<br/>posted?}
+    C -->|Yes| X[⏭️ Skip]
+    C -->|No| U[☁️ Upload to<br/>Supabase Storage]
+    U --> AI[✍️ OpenAI<br/>caption + hashtags]
+    AI --> IG[📸 Instagram<br/>Graph API]
+    IG --> L[(🗂️ Log in Supabase)]
 ```
-
----
-
-## ✅ Prerequisites
-
-* Running **n8n** instance (self-hosted or cloud)
-* **Google Drive API** enabled with OAuth2 credentials
-* **Supabase** project with:
-
-  * Public storage bucket (`insta_uploads`)
-  * Database table (`my_table`) to track posted files
-* **Facebook Developer App** + Page + Instagram Business/Creator account
-* **OpenAI API key**
-
----
-
-## 🔐 Credentials Setup
-
-You’ll need to configure credentials in n8n for:
-
-1. **Google Drive OAuth2** – connect Drive and provide Folder ID.
-2. **Supabase** – project URL + service role key.
-3. **OpenAI** – API key for GPT caption generation.
-4. **Facebook Graph API** – Page access token with `instagram_content_publish` permission and your Instagram business account ID.
-
----
-
-## ⚙️ Step-by-Step Setup
-
-### 1) Google Drive
-
-* Enable Google Drive API in Google Cloud.
-* Create OAuth2 credentials → add redirect URI for n8n (`/rest/oauth2-credential/callback/googleDriveOAuth2Api`).
-* In workflow, replace folder ID in:
-
-  ```
-  'YOUR_FOLDER_ID' in parents and mimeType contains 'image/'
-  ```
-
----
-
-### 2) Supabase
-
-* Create **storage bucket**: `insta_uploads` (public).
-* Create **table**:
-
-  ```sql
-  create table public.my_table (
-    id text primary key,
-    name text not null,
-    created_at timestamptz default now()
-  );
-  ```
-* Update workflow’s Supabase nodes (`Supabase Check`, `Adding New Entry`, and HTTP upload node).
-* Use endpoint format:
-
-  ```
-  POST https://<PROJECT_REF>.supabase.co/storage/v1/object/insta_uploads/{filename}
-  ```
-* Public URL:
-
-  ```
-  https://<PROJECT_REF>.supabase.co/storage/v1/object/public/insta_uploads/{filename}
-  ```
-
----
-
-### 3) OpenAI
-
-* Get API key from [OpenAI](https://platform.openai.com).
-* Configure **OpenAI node** in n8n → model `gpt-4o-mini`.
-* Pass image binary as input to generate captions/hashtags.
-
----
-
-### 4) Instagram / Facebook Graph API
-
-* Create a Facebook App.
-* Link a Page and Instagram Business/Creator account.
-* Generate Page access token with `instagram_content_publish`.
-* Get Instagram Business ID:
-
-  ```
-  GET /{page-id}?fields=instagram_business_account
-  ```
-* Use that ID as `node` in workflow’s Instagram nodes.
-
----
-
-## 🚀 Running the Workflow
-
-1. Import `Social Media Post.json` into n8n.
-2. Configure all credentials.
-3. Test node-by-node (Google Drive → Supabase → Upload → OpenAI → Instagram).
-4. Activate workflow & schedule runs.
-5. New Drive images will now be auto-posted to Instagram with AI captions.
 
 ---
 
 ## 📷 Example Output
 
-| Workflow Flow        | Instagram Post Example       |
-| -------------------- | ---------------------------- |
-| ![](Images/flow.png) | ![](Images/example_post.png) |
+<p align="center">
+  <img src="Images/example_post.png" alt="Example Instagram post" width="420"/>
+</p>
 
 ---
 
-## 🤝 Contact & Support
+## ⚙️ Setup
 
-For any help, queries, or collaborations, reach out:
+### ✅ Prerequisites
+- A running **n8n** instance (self-hosted or cloud)
+- **Google Drive API** with OAuth2 credentials
+- A **Supabase** project
+- A **Facebook App** linked to a Page and an Instagram **Business/Creator** account
+- An **OpenAI** API key
 
-👤 **Usama Shahid**
+### 1. Google Drive
+Enable the Drive API, create OAuth2 credentials (redirect: `/rest/oauth2-credential/callback`) and
+set your folder ID in the search node:
+```text
+'YOUR_FOLDER_ID' in parents and mimeType contains 'image/'
+```
 
-📧 Email: [dev.usamashahid@gmail.com](mailto:dev.usamashahid@gmail.com)
+### 2. Supabase
+Create a **public** storage bucket named `insta_uploads` and this table:
+```sql
+create table public.my_table (
+  id         text primary key,
+  name       text not null,
+  created_at timestamptz default now()
+);
+```
 
-🔗 LinkedIn: [linkedin.com/in/-usamashahid](https://linkedin.com/in/-usamashahid)
+### 3. OpenAI
+Add your API key to the **OpenAI** node (model `gpt-4o-mini`).
 
-🐙 GitHub: [github.com/fewgets](https://github.com/fewgets)
+### 4. Instagram / Facebook Graph API
+Generate a Page access token with `instagram_content_publish`, then get your Instagram Business ID:
+```text
+GET /{page-id}?fields=instagram_business_account
+```
+
+### 5. Import and run
+Import `Social Media Post.json` into n8n, connect the credentials, test node by node, then **activate**.
 
 ---
 
-## 📜 License
+## 🧰 Tech Stack
 
-This project is for learning & research purposes. Feel free to fork, adapt, and improve.
+| Component | Tool |
+|---|---|
+| Automation | [n8n](https://n8n.io) |
+| Source | Google Drive |
+| Database and Storage | Supabase (PostgreSQL + Storage) |
+| AI Captions | OpenAI `gpt-4o-mini` |
+| Publishing | Facebook Graph API (Instagram) |
+
+---
+
+## 🤝 Let's Work Together
+
+<div align="center">
+
+**Have an idea, a freelance project, or want to collaborate on something in AI?**
+I'm always open to collaborations, freelance work and full-time opportunities.
+
+<a href="mailto:shaikhusama541@gmail.com?subject=Collaboration%20-%20Social%20Content%20Engine">
+  <img src="https://img.shields.io/badge/Email-shaikhusama541%40gmail.com-36FFC7?style=for-the-badge&logo=gmail&logoColor=white&labelColor=0D1117" alt="Email"/>
+</a>
+<a href="https://www.linkedin.com/in/-usamashahid/">
+  <img src="https://img.shields.io/badge/LinkedIn-Usama%20Shahid-36FFC7?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=0D1117" alt="LinkedIn"/>
+</a>
+<a href="https://github.com/fewgets">
+  <img src="https://img.shields.io/badge/GitHub-fewgets-36FFC7?style=for-the-badge&logo=github&logoColor=white&labelColor=0D1117" alt="GitHub"/>
+</a>
+
+<br/><br/>
+
+⭐ **If you like this project, please give it a star. It really helps!** ⭐
+
+<br/>
+
+<h3>"Create once. Let automation do the posting."</h3>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:36FFC7,55:0F3D3E,100:0D1117&height=150&section=footer&animation=twinkling" width="100%" alt="footer"/>
+
+</div>
